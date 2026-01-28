@@ -157,42 +157,38 @@
         { name: "ITHardware", url: "https://ithardware.pl/rss" }
     ];
 
+    // Priority Proxy List - Re-ordered for better reliability
     const proxies = [
         {
-            name: "CorsProxy.io",
-            url: (target) => `https://corsproxy.io/?${encodeURIComponent(target)}`,
-            extract: (text) => text
-        },
-        {
-            name: "CodeTabs",
-            url: (target) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
-            extract: (text) => text
+            name: "RSS2JSON", // Reliable but has rate limits
+            url: (target) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(target)}`,
+            isJson: true
         },
         {
             name: "AllOrigins",
             url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
-            extract: (text) => {
-                try { return JSON.parse(text).contents; } catch { return null; }
-            }
+            isJson: false,
+            extract: (text) => { try { return JSON.parse(text).contents; } catch { return null; } }
+        },
+        {
+            name: "CorsProxy.io",
+            url: (target) => `https://corsproxy.io/?${encodeURIComponent(target)}`,
+            isJson: false,
+            extract: (text) => text
         }
     ];
 
-    function parseRSS(xmlText) {
+    function parseXML(xmlText) {
         try {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            if (xmlDoc.querySelector("parsererror")) return null;
-
             const items = Array.from(xmlDoc.querySelectorAll("item, entry"));
-            return items.map(node => {
-                const title = node.querySelector("title")?.textContent || "Bez tytułu";
-                let link = node.querySelector("link")?.textContent || node.querySelector("link")?.getAttribute("href");
-                const pubDate = node.querySelector("pubDate, published, updated")?.textContent || "";
-                return { title, link, pubDate };
-            });
-        } catch (e) {
-            return null;
-        }
+            return items.map(node => ({
+                title: node.querySelector("title")?.textContent || "Bez tytułu",
+                link: node.querySelector("link")?.textContent || node.querySelector("link")?.getAttribute("href"),
+                pubDate: node.querySelector("pubDate, published, updated")?.textContent || ""
+            }));
+        } catch { return null; }
     }
 
     function formatDate(dateString) {
@@ -201,16 +197,16 @@
         return isNaN(date) ? "" : date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
-    async function fetchFeedWithFallback(feed) {
+    async function fetchFeed(feed) {
         const container = document.getElementById("feeds");
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
             <div class="card-header">
                 <h2>${feed.name}</h2>
-                <span class="status-dot" title="Ładowanie..."></span>
+                <span class="status-dot"></span>
             </div>
-            <div class="msg-container">Inicjalizacja...</div>
+            <div class="msg-container">Łączenie...</div>
         `;
         container.appendChild(card);
         
@@ -219,50 +215,41 @@
 
         for (const proxy of proxies) {
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-                
-                const response = await fetch(proxy.url(feed.url), { signal: controller.signal });
-                clearTimeout(timeoutId);
+                const response = await fetch(proxy.url(feed.url));
+                if (!response.ok) continue;
 
-                if (!response.ok) throw new Error("Link error");
-
-                const rawText = await response.text();
-                const xmlString = proxy.extract(rawText);
-                const items = parseRSS(xmlString);
+                let items = [];
+                if (proxy.isJson) {
+                    const data = await response.json();
+                    items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate || i.pubDate }));
+                } else {
+                    const rawText = await response.text();
+                    const xml = proxy.extract ? proxy.extract(rawText) : rawText;
+                    items = parseXML(xml);
+                }
 
                 if (items && items.length > 0) {
                     dot.classList.add("success");
                     const list = document.createElement("ul");
                     list.className = "feed-list";
-                    
-                    items.slice(0, 15).forEach(item => {
+                    items.slice(0, 10).forEach(item => {
                         const li = document.createElement("a");
                         li.className = "feed-item";
                         li.href = item.link;
                         li.target = "_blank";
-                        li.rel = "noopener";
-                        li.innerHTML = `
-                            <span class="item-title">${item.title}</span>
-                            <span class="item-date">${formatDate(item.pubDate)}</span>
-                        `;
+                        li.innerHTML = `<span class="item-title">${item.title}</span><span class="item-date">${formatDate(item.pubDate)}</span>`;
                         list.appendChild(li);
                     });
-                    
                     msgBox.replaceWith(list);
-                    return; 
+                    return;
                 }
-            } catch (err) {
-                console.warn(`${feed.name} failed via ${proxy.name}`);
-            }
+            } catch (e) { console.error(`Proxy ${proxy.name} failed`); }
         }
         dot.classList.add("error");
-        msgBox.textContent = "Błąd ładowania (CORS/Timeout)";
+        msgBox.textContent = "Błąd (CORS)";
     }
 
-    // Trigger the loading process
-    feeds.forEach(feed => fetchFeedWithFallback(feed));
+    feeds.forEach(fetchFeed);
 </script>
-
 </body>
 </html>
