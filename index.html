@@ -77,13 +77,13 @@
         .status-dot {
             height: 8px;
             width: 8px;
-            background-color: #fbbf24; /* Yellow = Loading */
+            background-color: #fbbf24; 
             border-radius: 50%;
             display: inline-block;
         }
 
-        .status-dot.success { background-color: #4ade80; } /* Green */
-        .status-dot.error { background-color: #ef4444; } /* Red */
+        .status-dot.success { background-color: #4ade80; } 
+        .status-dot.error { background-color: #ef4444; } 
 
         .feed-list {
             list-style: none;
@@ -93,7 +93,6 @@
             flex-grow: 1;
         }
 
-        /* Custom Scrollbar */
         .feed-list::-webkit-scrollbar { width: 6px; }
         .feed-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
 
@@ -158,48 +157,37 @@
         { name: "ITHardware", url: "https://ithardware.pl/rss" }
     ];
 
-    const container = document.getElementById("feeds");
-
-    // 1. Define the Proxy Fallback List
-    // These services route our request through their servers to bypass CORS and Geo-blocks.
     const proxies = [
-        {
-            name: "CodeTabs",
-            url: (target) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
-            extract: (text) => text // CodeTabs returns raw XML directly
-        },
         {
             name: "CorsProxy.io",
             url: (target) => `https://corsproxy.io/?${encodeURIComponent(target)}`,
-            extract: (text) => text // Returns raw XML
+            extract: (text) => text
+        },
+        {
+            name: "CodeTabs",
+            url: (target) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
+            extract: (text) => text
         },
         {
             name: "AllOrigins",
             url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
             extract: (text) => {
-                // AllOrigins returns JSON with a 'contents' field containing the XML
                 try { return JSON.parse(text).contents; } catch { return null; }
             }
         }
     ];
 
-    // Helper: Parse XML String into Objects
     function parseRSS(xmlText) {
         try {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            
-            // Check for parser errors
             if (xmlDoc.querySelector("parsererror")) return null;
 
-            // Handle both RSS (<item>) and Atom (<entry>) feeds
             const items = Array.from(xmlDoc.querySelectorAll("item, entry"));
-            
             return items.map(node => {
                 const title = node.querySelector("title")?.textContent || "Bez tytułu";
-                const link = node.querySelector("link")?.textContent || node.querySelector("link")?.getAttribute("href");
+                let link = node.querySelector("link")?.textContent || node.querySelector("link")?.getAttribute("href");
                 const pubDate = node.querySelector("pubDate, published, updated")?.textContent || "";
-                
                 return { title, link, pubDate };
             });
         } catch (e) {
@@ -207,16 +195,14 @@
         }
     }
 
-    // Helper: Format Date
     function formatDate(dateString) {
         if (!dateString) return "";
         const date = new Date(dateString);
         return isNaN(date) ? "" : date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
-    // Main Logic: The Waterfall Fetcher
     async function fetchFeedWithFallback(feed) {
-        // Create Card UI
+        const container = document.getElementById("feeds");
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
@@ -224,39 +210,29 @@
                 <h2>${feed.name}</h2>
                 <span class="status-dot" title="Ładowanie..."></span>
             </div>
-            <div class="msg-container" id="msg-${feed.name}">Inicjalizacja połączenia...</div>
+            <div class="msg-container">Inicjalizacja...</div>
         `;
         container.appendChild(card);
         
         const msgBox = card.querySelector(".msg-container");
         const dot = card.querySelector(".status-dot");
 
-        // Try Proxies one by one
         for (const proxy of proxies) {
-            msgBox.textContent = `Próba połączenia przez ${proxy.name}...`;
-            
             try {
-                // Fetch with 8 second timeout to prevent hanging
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 8000);
                 
                 const response = await fetch(proxy.url(feed.url), { signal: controller.signal });
                 clearTimeout(timeoutId);
 
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                if (!response.ok) throw new Error("Link error");
 
                 const rawText = await response.text();
-                const xmlString = proxy.extract(rawText); // Handle JSON wrappers if needed
-
-                if (!xmlString) throw new Error("Empty response");
-
+                const xmlString = proxy.extract(rawText);
                 const items = parseRSS(xmlString);
 
                 if (items && items.length > 0) {
-                    // SUCCESS! Render items
                     dot.classList.add("success");
-                    dot.title = `Połączono przez ${proxy.name}`;
-                    
                     const list = document.createElement("ul");
                     list.className = "feed-list";
                     
@@ -273,14 +249,20 @@
                         list.appendChild(li);
                     });
                     
-                    // Replace loading message with list
                     msgBox.replaceWith(list);
-                    return; // Stop the loop, we got data
+                    return; 
                 }
             } catch (err) {
-                console.warn(`${feed.name} failed via ${proxy.name}:`, err);
-                // Loop continues to next proxy...
+                console.warn(`${feed.name} failed via ${proxy.name}`);
             }
         }
+        dot.classList.add("error");
+        msgBox.textContent = "Błąd ładowania (CORS/Timeout)";
+    }
 
-        // If we reach here, ALL proxies failed
+    // Trigger the loading process
+    feeds.forEach(feed => fetchFeedWithFallback(feed));
+</script>
+
+</body>
+</html>
