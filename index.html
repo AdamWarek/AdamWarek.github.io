@@ -3,29 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polska Tech – Multi-Proxy Aggregator</title>
+    <title>Polska Tech – Nature Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --text: #f8fafc;
+            /* Updated Colors */
+            --card-bg: rgba(0, 0, 0, 0.7); /* Black with transparency */
+            --text: #ffffff;
             --accent: #38bdf8;
-            --dim: #94a3b8;
-            --border: rgba(255, 255, 255, 0.1);
+            --dim: #cbd5e1;
+            --border: rgba(255, 255, 255, 0.2);
         }
 
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
             color: var(--text);
             padding-bottom: 50px;
+            /* Nature Background */
+            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), 
+                        url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
         header {
-            background: rgba(15, 23, 42, 0.95);
+            background: rgba(0, 0, 0, 0.8);
             padding: 20px;
             text-align: center;
             border-bottom: 1px solid var(--border);
@@ -56,12 +61,19 @@
             height: 450px;
             overflow: hidden;
             position: relative;
+            backdrop-filter: blur(8px); /* Adds a frosted glass effect */
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
         }
 
         .card-header {
             padding: 15px;
             border-bottom: 1px solid var(--border);
-            background: rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -79,7 +91,6 @@
             width: 8px;
             background-color: #fbbf24; 
             border-radius: 50%;
-            display: inline-block;
         }
 
         .status-dot.success { background-color: #4ade80; } 
@@ -94,7 +105,7 @@
         }
 
         .feed-list::-webkit-scrollbar { width: 6px; }
-        .feed-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        .feed-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
 
         .feed-item {
             display: block;
@@ -105,18 +116,16 @@
         }
 
         .feed-item:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(56, 189, 248, 0.1);
         }
 
         .item-title {
-            color: var(--text);
+            color: #ffffff;
             font-size: 0.9rem;
             line-height: 1.4;
             display: block;
             margin-bottom: 4px;
         }
-
-        .feed-item:hover .item-title { color: var(--accent); }
 
         .item-date {
             font-size: 0.75rem;
@@ -139,7 +148,7 @@
 
 <header>
     <h1>Polska Tech Feed</h1>
-    <div class="subtitle">Agregator RSS z systemem Multi-Proxy</div>
+    <div class="subtitle">Nature Design • Multi-Proxy Aggregator</div>
 </header>
 
 <div class="container" id="feeds"></div>
@@ -157,10 +166,9 @@
         { name: "ITHardware", url: "https://ithardware.pl/rss" }
     ];
 
-    // Priority Proxy List - Re-ordered for better reliability
     const proxies = [
         {
-            name: "RSS2JSON", // Reliable but has rate limits
+            name: "RSS2JSON",
             url: (target) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(target)}`,
             isJson: true
         },
@@ -169,12 +177,6 @@
             url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
             isJson: false,
             extract: (text) => { try { return JSON.parse(text).contents; } catch { return null; } }
-        },
-        {
-            name: "CorsProxy.io",
-            url: (target) => `https://corsproxy.io/?${encodeURIComponent(target)}`,
-            isJson: false,
-            extract: (text) => text
         }
     ];
 
@@ -194,7 +196,7 @@
     function formatDate(dateString) {
         if (!dateString) return "";
         const date = new Date(dateString);
-        return isNaN(date) ? "" : date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+        return isNaN(date) ? "" : date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
     }
 
     async function fetchFeed(feed) {
@@ -206,7 +208,7 @@
                 <h2>${feed.name}</h2>
                 <span class="status-dot"></span>
             </div>
-            <div class="msg-container">Łączenie...</div>
+            <div class="msg-container">Wczytywanie...</div>
         `;
         container.appendChild(card);
         
@@ -221,7 +223,8 @@
                 let items = [];
                 if (proxy.isJson) {
                     const data = await response.json();
-                    items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate || i.pubDate }));
+                    if(data.status !== 'ok') continue;
+                    items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate }));
                 } else {
                     const rawText = await response.text();
                     const xml = proxy.extract ? proxy.extract(rawText) : rawText;
@@ -243,10 +246,10 @@
                     msgBox.replaceWith(list);
                     return;
                 }
-            } catch (e) { console.error(`Proxy ${proxy.name} failed`); }
+            } catch (e) { console.error(`Failed ${feed.name}`); }
         }
         dot.classList.add("error");
-        msgBox.textContent = "Błąd (CORS)";
+        msgBox.textContent = "Błąd połączenia";
     }
 
     feeds.forEach(fetchFeed);
