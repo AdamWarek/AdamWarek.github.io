@@ -1,117 +1,286 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8" />
-<title>Polska Technologia – Agregator RSS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polska Tech – Multi-Proxy Aggregator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
-}
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+            --accent: #38bdf8;
+            --dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+        }
 
-header {
-  padding: 15px;
-  text-align: center;
-  background: #020617;
-  font-size: 22px;
-  font-weight: bold;
-}
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 50px;
+        }
 
-.container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 15px;
-  padding: 15px;
-}
+        header {
+            background: rgba(15, 23, 42, 0.95);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
 
-.card {
-  background: #020617;
-  border-radius: 8px;
-  padding: 10px;
-}
+        h1 { margin: 0; font-size: 1.5rem; color: var(--accent); }
+        .subtitle { font-size: 0.85rem; color: var(--dim); margin-top: 5px; }
 
-.card h2 {
-  font-size: 16px;
-  margin-bottom: 8px;
-  color: #38bdf8;
-}
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
 
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 450px;
+            overflow: hidden;
+            position: relative;
+        }
 
-li {
-  margin-bottom: 6px;
-}
+        .card-header {
+            padding: 15px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-a {
-  color: #e5e7eb;
-  text-decoration: none;
-  font-size: 14px;
-}
+        .card-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--accent);
+            font-weight: 600;
+        }
 
-a:hover {
-  text-decoration: underline;
-  color: #38bdf8;
-}
-</style>
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #fbbf24; /* Yellow = Loading */
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.success { background-color: #4ade80; } /* Green */
+        .status-dot.error { background-color: #ef4444; } /* Red */
+
+        .feed-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        /* Custom Scrollbar */
+        .feed-list::-webkit-scrollbar { width: 6px; }
+        .feed-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+        .feed-item {
+            display: block;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .feed-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .item-title {
+            color: var(--text);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .feed-item:hover .item-title { color: var(--accent); }
+
+        .item-date {
+            font-size: 0.75rem;
+            color: var(--dim);
+        }
+
+        .msg-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--dim);
+        }
+    </style>
 </head>
-
 <body>
 
 <header>
-  🇵🇱 Najpopularniejsze Serwisy Technologiczne – RSS
+    <h1>Polska Tech Feed</h1>
+    <div class="subtitle">Agregator RSS z systemem Multi-Proxy</div>
 </header>
 
 <div class="container" id="feeds"></div>
 
 <script>
-const feeds = [
-  { name: "Benchmark", url: "https://www.benchmark.pl/rss/aktualnosci.xml" },
-  { name: "Spider's Web", url: "https://spidersweb.pl/feed" },
-  { name: "Antyweb", url: "https://antyweb.pl/feed" },
-  { name: "Komputer Świat", url: "https://www.komputerswiat.pl/rss" },
-  { name: "ITBiznes", url: "https://itbiznes.pl/feed" },
-  { name: "PurePC", url: "https://www.purepc.pl/rss.xml" }
-];
+    const feeds = [
+        { name: "Benchmark", url: "https://www.benchmark.pl/rss/aktualnosci.xml" },
+        { name: "Spider's Web", url: "https://spidersweb.pl/feed" },
+        { name: "Antyweb", url: "https://antyweb.pl/feed" },
+        { name: "Komputer Świat", url: "https://www.komputerswiat.pl/rss" },
+        { name: "ITBiznes", url: "https://itbiznes.pl/feed" },
+        { name: "PurePC", url: "https://www.purepc.pl/rss.xml" },
+        { name: "Telepolis", url: "https://www.telepolis.pl/rss.xml" },
+        { name: "DobreProgramy", url: "https://www.dobreprogramy.pl/rss" },
+        { name: "ITHardware", url: "https://ithardware.pl/rss" }
+    ];
 
-const container = document.getElementById("feeds");
+    const container = document.getElementById("feeds");
 
-feeds.forEach(feed => {
-  fetch(`https://api.rss2json.com/v1/api.json?rss_url=${feed.url}`)
-    .then(res => res.json())
-    .then(data => {
-      const card = document.createElement("div");
-      card.className = "card";
+    // 1. Define the Proxy Fallback List
+    // These services route our request through their servers to bypass CORS and Geo-blocks.
+    const proxies = [
+        {
+            name: "CodeTabs",
+            url: (target) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
+            extract: (text) => text // CodeTabs returns raw XML directly
+        },
+        {
+            name: "CorsProxy.io",
+            url: (target) => `https://corsproxy.io/?${encodeURIComponent(target)}`,
+            extract: (text) => text // Returns raw XML
+        },
+        {
+            name: "AllOrigins",
+            url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
+            extract: (text) => {
+                // AllOrigins returns JSON with a 'contents' field containing the XML
+                try { return JSON.parse(text).contents; } catch { return null; }
+            }
+        }
+    ];
 
-      const title = document.createElement("h2");
-      title.textContent = feed.name;
-      card.appendChild(title);
+    // Helper: Parse XML String into Objects
+    function parseRSS(xmlText) {
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+            
+            // Check for parser errors
+            if (xmlDoc.querySelector("parsererror")) return null;
 
-      const list = document.createElement("ul");
+            // Handle both RSS (<item>) and Atom (<entry>) feeds
+            const items = Array.from(xmlDoc.querySelectorAll("item, entry"));
+            
+            return items.map(node => {
+                const title = node.querySelector("title")?.textContent || "Bez tytułu";
+                const link = node.querySelector("link")?.textContent || node.querySelector("link")?.getAttribute("href");
+                const pubDate = node.querySelector("pubDate, published, updated")?.textContent || "";
+                
+                return { title, link, pubDate };
+            });
+        } catch (e) {
+            return null;
+        }
+    }
 
-      data.items.slice(0, 8).forEach(item => {
-        const li = document.createElement("li");
-        const a = document.createElement("a");
-        a.href = item.link;
-        a.target = "_blank";
-        a.textContent = item.title;
-        li.appendChild(a);
-        list.appendChild(li);
-      });
+    // Helper: Format Date
+    function formatDate(dateString) {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return isNaN(date) ? "" : date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
 
-      card.appendChild(list);
-      container.appendChild(card);
-    })
-    .catch(err => console.error("RSS error:", err));
-});
-</script>
+    // Main Logic: The Waterfall Fetcher
+    async function fetchFeedWithFallback(feed) {
+        // Create Card UI
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+            <div class="card-header">
+                <h2>${feed.name}</h2>
+                <span class="status-dot" title="Ładowanie..."></span>
+            </div>
+            <div class="msg-container" id="msg-${feed.name}">Inicjalizacja połączenia...</div>
+        `;
+        container.appendChild(card);
+        
+        const msgBox = card.querySelector(".msg-container");
+        const dot = card.querySelector(".status-dot");
 
-</body>
-</html>
+        // Try Proxies one by one
+        for (const proxy of proxies) {
+            msgBox.textContent = `Próba połączenia przez ${proxy.name}...`;
+            
+            try {
+                // Fetch with 8 second timeout to prevent hanging
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
+                const response = await fetch(proxy.url(feed.url), { signal: controller.signal });
+                clearTimeout(timeoutId);
 
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const rawText = await response.text();
+                const xmlString = proxy.extract(rawText); // Handle JSON wrappers if needed
+
+                if (!xmlString) throw new Error("Empty response");
+
+                const items = parseRSS(xmlString);
+
+                if (items && items.length > 0) {
+                    // SUCCESS! Render items
+                    dot.classList.add("success");
+                    dot.title = `Połączono przez ${proxy.name}`;
+                    
+                    const list = document.createElement("ul");
+                    list.className = "feed-list";
+                    
+                    items.slice(0, 15).forEach(item => {
+                        const li = document.createElement("a");
+                        li.className = "feed-item";
+                        li.href = item.link;
+                        li.target = "_blank";
+                        li.rel = "noopener";
+                        li.innerHTML = `
+                            <span class="item-title">${item.title}</span>
+                            <span class="item-date">${formatDate(item.pubDate)}</span>
+                        `;
+                        list.appendChild(li);
+                    });
+                    
+                    // Replace loading message with list
+                    msgBox.replaceWith(list);
+                    return; // Stop the loop, we got data
+                }
+            } catch (err) {
+                console.warn(`${feed.name} failed via ${proxy.name}:`, err);
+                // Loop continues to next proxy...
+            }
+        }
+
+        // If we reach here, ALL proxies failed
