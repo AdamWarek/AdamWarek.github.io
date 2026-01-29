@@ -8,8 +8,7 @@
 
     <style>
         :root {
-            /* Updated Colors */
-            --card-bg: rgba(0, 0, 0, 0.7); /* Black with transparency */
+            --card-bg: rgba(0, 0, 0, 0.7);
             --text: #ffffff;
             --accent: #38bdf8;
             --dim: #cbd5e1;
@@ -21,8 +20,7 @@
             font-family: 'Inter', sans-serif;
             color: var(--text);
             padding-bottom: 50px;
-            /* Nature Background */
-            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)), 
+            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)),
                         url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
@@ -61,7 +59,7 @@
             height: 450px;
             overflow: hidden;
             position: relative;
-            backdrop-filter: blur(8px); /* Adds a frosted glass effect */
+            backdrop-filter: blur(8px);
             transition: transform 0.2s ease;
         }
 
@@ -89,12 +87,12 @@
         .status-dot {
             height: 8px;
             width: 8px;
-            background-color: #fbbf24; 
+            background-color: #fbbf24;
             border-radius: 50%;
         }
 
-        .status-dot.success { background-color: #4ade80; } 
-        .status-dot.error { background-color: #ef4444; } 
+        .status-dot.success { background-color: #4ade80; }
+        .status-dot.error { background-color: #ef4444; }
 
         .feed-list {
             list-style: none;
@@ -104,15 +102,11 @@
             flex-grow: 1;
         }
 
-        .feed-list::-webkit-scrollbar { width: 6px; }
-        .feed-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
-
         .feed-item {
             display: block;
             padding: 12px 15px;
             border-bottom: 1px solid var(--border);
             text-decoration: none;
-            transition: background 0.2s;
         }
 
         .feed-item:hover {
@@ -158,7 +152,7 @@
         { name: "Benchmark", url: "https://www.benchmark.pl/rss/aktualnosci.xml" },
         { name: "Spider's Web", url: "https://spidersweb.pl/feed" },
         { name: "Antyweb", url: "https://antyweb.pl/feed" },
-        { name: "Komputer Świat", url: "https://www.komputerswiat.pl/rss" },
+        { name: "Komputer Świat", url: "https://feeds.feedburner.com/komputerswiat" },
         { name: "ITBiznes", url: "https://itbiznes.pl/feed" },
         { name: "PurePC", url: "https://www.purepc.pl/rss.xml" },
         { name: "Telepolis", url: "https://www.telepolis.pl/rss.xml" },
@@ -176,7 +170,10 @@
             name: "AllOrigins",
             url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
             isJson: false,
-            extract: (text) => { try { return JSON.parse(text).contents; } catch { return null; } }
+            extract: (text) => {
+                try { return JSON.parse(text).contents; }
+                catch { return null; }
+            }
         }
     ];
 
@@ -211,7 +208,7 @@
             <div class="msg-container">Wczytywanie...</div>
         `;
         container.appendChild(card);
-        
+
         const msgBox = card.querySelector(".msg-container");
         const dot = card.querySelector(".status-dot");
 
@@ -223,7 +220,7 @@
                 let items = [];
                 if (proxy.isJson) {
                     const data = await response.json();
-                    if(data.status !== 'ok') continue;
+                    if (data.status !== 'ok') continue;
                     items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate }));
                 } else {
                     const rawText = await response.text();
@@ -240,19 +237,26 @@
                         li.className = "feed-item";
                         li.href = item.link;
                         li.target = "_blank";
-                        li.innerHTML = `<span class="item-title">${item.title}</span><span class="item-date">${formatDate(item.pubDate)}</span>`;
+                        li.innerHTML = `
+                            <span class="item-title">${item.title}</span>
+                            <span class="item-date">${formatDate(item.pubDate)}</span>
+                        `;
                         list.appendChild(li);
                     });
                     msgBox.replaceWith(list);
                     return;
                 }
-            } catch (e) { console.error(`Failed ${feed.name}`); }
+            } catch (e) {
+                console.error(`Failed ${feed.name}`);
+            }
         }
+
         dot.classList.add("error");
         msgBox.textContent = "Błąd połączenia";
     }
 
     feeds.forEach(fetchFeed);
 </script>
+
 </body>
 </html>
