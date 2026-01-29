@@ -8,154 +8,112 @@
 
 <style>
 :root {
-  --card-bg: rgba(0,0,0,.7);
-  --text: #fff;
-  --accent: #38bdf8;
-  --dim: #cbd5e1;
-  --border: rgba(255,255,255,.2);
+  --bg: rgba(0,0,0,.7);
+  --accent:#38bdf8;
+  --text:#fff;
+  --dim:#cbd5e1;
+  --border:rgba(255,255,255,.2);
 }
 
 body {
-  margin: 0;
-  font-family: Inter, sans-serif;
-  color: var(--text);
+  margin:0;
+  font-family:Inter,sans-serif;
+  color:var(--text);
   background:
-    linear-gradient(rgba(15,23,42,.6), rgba(15,23,42,.6)),
+    linear-gradient(rgba(15,23,42,.6),rgba(15,23,42,.6)),
     url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop');
-  background-size: cover;
-  background-attachment: fixed;
+  background-size:cover;
+  background-attachment:fixed;
 }
 
 header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(0,0,0,.85);
-  border-bottom: 1px solid var(--border);
-  padding: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:rgba(0,0,0,.85);
+  border-bottom:1px solid var(--border);
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
-h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
+h1 { margin:0; font-size:1.2rem; color:var(--accent); }
 
-.toolbar button {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-left: 6px;
+button {
+  background:none;
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:6px 10px;
+  border-radius:6px;
+  cursor:pointer;
 }
 
 .container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  padding: 20px;
-  max-width: 1600px;
-  margin: auto;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:20px;
+  padding:20px;
+  max-width:1600px;
+  margin:auto;
 }
 
 .card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  height: 450px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  cursor: grab;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  height:440px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  cursor:grab;
 }
 
-.card.dragging { opacity: .4; }
+.card.dragging { opacity:.4; }
 
 .card-header {
-  padding: 12px;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding:12px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
 }
 
 .card-header h2 {
-  margin: 0;
-  font-size: .95rem;
-  color: var(--accent);
+  margin:0;
+  font-size:.95rem;
+  color:var(--accent);
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #fbbf24;
+.feed {
+  flex:1;
+  overflow-y:auto;
 }
 
-.status-dot.success { background: #4ade80; }
-.status-dot.error { background: #ef4444; }
-
-.remove {
-  background: none;
-  border: none;
-  color: #ef4444;
-  font-size: 1.1rem;
-  cursor: pointer;
-  margin-left: 10px;
+.feed a {
+  display:block;
+  padding:10px 14px;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+  text-decoration:none;
 }
 
-.feed-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  overflow-y: auto;
-  flex-grow: 1;
-}
+.feed a:hover { background:rgba(56,189,248,.1); }
 
-.feed-item {
-  display: block;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border);
-  text-decoration: none;
-  color: var(--text);
-}
-
-.feed-item:hover { background: rgba(56,189,248,.1); }
-
-.item-title { font-size: .9rem; }
-.item-date { font-size: .75rem; color: var(--dim); }
-
-.msg {
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--dim);
-}
+.small { font-size:.75rem; color:var(--dim); }
 
 .hidden-panel {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  background: rgba(0,0,0,.85);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px;
-  max-width: 260px;
-  display: none;
+  position:fixed;
+  right:20px;
+  bottom:20px;
+  background:rgba(0,0,0,.85);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px;
+  display:none;
 }
-.hidden-panel h3 { margin: 0 0 8px; font-size: .9rem; color: var(--accent); }
-.hidden-panel button {
-  width: 100%;
-  margin-bottom: 6px;
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 6px;
-  border-radius: 6px;
-  cursor: pointer;
-}
+.hidden-panel h3 { margin:0 0 8px; color:var(--accent); font-size:.9rem; }
+.hidden-panel button { width:100%; margin-bottom:6px; }
 </style>
 </head>
 
@@ -163,13 +121,13 @@ h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
 
 <header>
   <h1>Polska Tech Feed</h1>
-  <div class="toolbar">
+  <div>
     <button onclick="toggleHidden()">➕ Add tiles</button>
     <button onclick="resetLayout()">↺ Reset</button>
   </div>
 </header>
 
-<div class="container" id="feeds"></div>
+<div class="container" id="grid"></div>
 
 <div class="hidden-panel" id="hiddenPanel">
   <h3>Hidden tiles</h3>
@@ -178,29 +136,93 @@ h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
 
 <script>
 /* ---------- CONFIG ---------- */
-const feedsData = [
+const feeds = [
   { id:'benchmark', name:'Benchmark', url:'https://www.benchmark.pl/rss/aktualnosci.xml' },
-  { id:'spidersweb', name:\"Spider's Web\", url:'https://spidersweb.pl/feed' },
+  { id:'spidersweb', name:"Spider's Web", url:'https://spidersweb.pl/feed' },
   { id:'antyweb', name:'Antyweb', url:'https://antyweb.pl/feed' },
   { id:'ks', name:'Komputer Świat', url:'https://feeds.feedburner.com/komputerswiat' },
-  { id:'itbiznes', name:'ITBiznes', url:'https://itbiznes.pl/feed' },
-  { id:'purepc', name:'PurePC', url:'https://www.purepc.pl/rss.xml' }
+  { id:'itbiznes', name:'ITBiznes', url:'https://itbiznes.pl/feed' }
 ];
 
-const proxies = [
-  { json:true, url:t=>`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(t)}` },
-  { json:false, url:t=>`https://api.allorigins.win/get?url=${encodeURIComponent(t)}`,
-    extract:t=>{ try{return JSON.parse(t).contents}catch{return null} } }
-];
+const PROXY = url =>
+  `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
 
 /* ---------- STATE ---------- */
-let state = JSON.parse(localStorage.getItem('tilesState')) || {
-  order: feedsData.map(f=>f.id),
-  hidden: []
+let state = JSON.parse(localStorage.getItem('tiles')) || {
+  order: feeds.map(f=>f.id),
+  hidden:[]
 };
 
-const container = document.getElementById('feeds');
+const grid = document.getElementById('grid');
 const hiddenPanel = document.getElementById('hiddenPanel');
 const hiddenList = document.getElementById('hiddenList');
 
-function save(){ localStor
+function save(){ localStorage.setItem('tiles',JSON.stringify(state)); }
+
+/* ---------- RENDER ---------- */
+function render(){
+  grid.innerHTML='';
+  hiddenList.innerHTML='';
+
+  state.order.forEach(id=>{
+    if(state.hidden.includes(id)) return;
+    const feed = feeds.find(f=>f.id===id);
+
+    const card=document.createElement('div');
+    card.className='card';
+    card.draggable=true;
+    card.dataset.id=id;
+
+    card.innerHTML=`
+      <div class="card-header">
+        <h2>${feed.name}</h2>
+        <button onclick="hideTile('${id}')">✕</button>
+      </div>
+      <div class="feed" id="feed-${id}">
+        <div class="small" style="padding:12px">Wczytywanie…</div>
+      </div>
+    `;
+
+    addDnD(card);
+    grid.appendChild(card);
+    loadFeed(feed);
+  });
+
+  state.hidden.forEach(id=>{
+    const f=feeds.find(x=>x.id===id);
+    const b=document.createElement('button');
+    b.textContent=`➕ ${f.name}`;
+    b.onclick=()=>showTile(id);
+    hiddenList.appendChild(b);
+  });
+
+  hiddenPanel.style.display = state.hidden.length ? 'block':'none';
+}
+
+/* ---------- RSS ---------- */
+async function loadFeed(feed){
+  const box=document.getElementById(`feed-${feed.id}`);
+  try{
+    const r=await fetch(PROXY(feed.url));
+    const j=await r.json();
+    box.innerHTML='';
+    j.items.slice(0,10).forEach(i=>{
+      const a=document.createElement('a');
+      a.href=i.link;
+      a.target='_blank';
+      a.innerHTML=`${i.title}<div class="small">${new Date(i.pubDate).toLocaleDateString('pl-PL')}</div>`;
+      box.appendChild(a);
+    });
+  }catch{
+    box.innerHTML='<div class="small" style="padding:12px">Błąd połączenia</div>';
+  }
+}
+
+/* ---------- ACTIONS ---------- */
+function hideTile(id){ state.hidden.push(id); save(); render(); }
+function showTile(id){ state.hidden=state.hidden.filter(x=>x!==id); save(); render(); }
+function resetLayout(){ localStorage.removeItem('tiles'); location.reload(); }
+function toggleHidden(){ hiddenPanel.style.display = hiddenPanel.style.display==='block'?'none':'block'; }
+
+/* ---------- DRAG ---------- */
+functi
