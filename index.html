@@ -1,262 +1,201 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polska Tech – Nature Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polska Tech Feed</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
-    <style>
-        :root {
-            --card-bg: rgba(0, 0, 0, 0.7);
-            --text: #ffffff;
-            --accent: #38bdf8;
-            --dim: #cbd5e1;
-            --border: rgba(255, 255, 255, 0.2);
-        }
+<style>
+:root {
+  --card-bg: rgba(0,0,0,.7);
+  --text: #fff;
+  --accent: #38bdf8;
+  --dim: #cbd5e1;
+  --border: rgba(255,255,255,.2);
+}
 
-        body {
-            margin: 0;
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            padding-bottom: 50px;
-            background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.6)),
-                        url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
+body {
+  margin: 0;
+  font-family: Inter, sans-serif;
+  color: var(--text);
+  background:
+    linear-gradient(rgba(15,23,42,.6), rgba(15,23,42,.6)),
+    url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?q=80&w=2560&auto=format&fit=crop');
+  background-size: cover;
+  background-attachment: fixed;
+}
 
-        header {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-        }
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(0,0,0,.85);
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-        h1 { margin: 0; font-size: 1.5rem; color: var(--accent); }
-        .subtitle { font-size: 0.85rem; color: var(--dim); margin-top: 5px; }
+h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--accent);
+}
 
-        .container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-            padding: 20px;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
+.toolbar button {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 6px;
+}
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            height: 450px;
-            overflow: hidden;
-            position: relative;
-            backdrop-filter: blur(8px);
-            transition: transform 0.2s ease;
-        }
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  max-width: 1600px;
+  margin: auto;
+}
 
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent);
-        }
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  height: 450px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: grab;
+}
 
-        .card-header {
-            padding: 15px;
-            border-bottom: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.card.dragging { opacity: .4; }
 
-        .card-header h2 {
-            margin: 0;
-            font-size: 1rem;
-            color: var(--accent);
-            font-weight: 600;
-        }
+.card-header {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-        .status-dot {
-            height: 8px;
-            width: 8px;
-            background-color: #fbbf24;
-            border-radius: 50%;
-        }
+.card-header h2 {
+  margin: 0;
+  font-size: .95rem;
+  color: var(--accent);
+}
 
-        .status-dot.success { background-color: #4ade80; }
-        .status-dot.error { background-color: #ef4444; }
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fbbf24;
+}
 
-        .feed-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            overflow-y: auto;
-            flex-grow: 1;
-        }
+.status-dot.success { background: #4ade80; }
+.status-dot.error { background: #ef4444; }
 
-        .feed-item {
-            display: block;
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border);
-            text-decoration: none;
-        }
+.remove {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-left: 10px;
+}
 
-        .feed-item:hover {
-            background: rgba(56, 189, 248, 0.1);
-        }
+.feed-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  flex-grow: 1;
+}
 
-        .item-title {
-            color: #ffffff;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            display: block;
-            margin-bottom: 4px;
-        }
+.feed-item {
+  display: block;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+}
 
-        .item-date {
-            font-size: 0.75rem;
-            color: var(--dim);
-        }
+.feed-item:hover {
+  background: rgba(56,189,248,.1);
+}
 
-        .msg-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding: 20px;
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--dim);
-        }
-    </style>
+.item-title { font-size: .9rem; }
+.item-date { font-size: .75rem; color: var(--dim); }
+
+.msg {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dim);
+}
+
+.hidden-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: rgba(0,0,0,.85);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  max-width: 260px;
+  display: none;
+}
+
+.hidden-panel h3 {
+  margin: 0 0 8px;
+  font-size: .9rem;
+  color: var(--accent);
+}
+
+.hidden-panel button {
+  width: 100%;
+  margin-bottom: 6px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+</style>
 </head>
+
 <body>
 
 <header>
-    <h1>Polska Tech Feed</h1>
-    <div class="subtitle">Nature Design • Multi-Proxy Aggregator</div>
+  <h1>Polska Tech Feed</h1>
+  <div class="toolbar">
+    <button onclick="toggleHidden()">➕ Add tiles</button>
+    <button onclick="resetLayout()">↺ Reset</button>
+  </div>
 </header>
 
 <div class="container" id="feeds"></div>
 
+<div class="hidden-panel" id="hiddenPanel">
+  <h3>Hidden tiles</h3>
+  <div id="hiddenList"></div>
+</div>
+
 <script>
-    const feeds = [
-        { name: "Benchmark", url: "https://www.benchmark.pl/rss/aktualnosci.xml" },
-        { name: "Spider's Web", url: "https://spidersweb.pl/feed" },
-        { name: "Antyweb", url: "https://antyweb.pl/feed" },
-        { name: "Komputer Świat", url: "https://feeds.feedburner.com/komputerswiat" },
-        { name: "ITBiznes", url: "https://itbiznes.pl/feed" },
-        { name: "PurePC", url: "https://www.purepc.pl/rss.xml" },
-        { name: "Telepolis", url: "https://www.telepolis.pl/rss.xml" },
-        { name: "DobreProgramy", url: "https://www.dobreprogramy.pl/rss" },
-        { name: "ITHardware", url: "https://ithardware.pl/rss" }
-    ];
+const feedsData = [
+  { id:'benchmark', name:'Benchmark', url:'https://www.benchmark.pl/rss/aktualnosci.xml' },
+  { id:'spidersweb', name:\"Spider's Web\", url:'https://spidersweb.pl/feed' },
+  { id:'antyweb', name:'Antyweb', url:'https://antyweb.pl/feed' },
+  { id:'ks', name:'Komputer Świat', url:'https://feeds.feedburner.com/komputerswiat' },
+  { id:'itbiznes', name:'ITBiznes', url:'https://itbiznes.pl/feed' },
+  { id:'purepc', name:'PurePC', url:'https://www.purepc.pl/rss.xml' }
+];
 
-    const proxies = [
-        {
-            name: "RSS2JSON",
-            url: (target) => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(target)}`,
-            isJson: true
-        },
-        {
-            name: "AllOrigins",
-            url: (target) => `https://api.allorigins.win/get?url=${encodeURIComponent(target)}`,
-            isJson: false,
-            extract: (text) => {
-                try { return JSON.parse(text).contents; }
-                catch { return null; }
-            }
-        }
-    ];
-
-    function parseXML(xmlText) {
-        try {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-            const items = Array.from(xmlDoc.querySelectorAll("item, entry"));
-            return items.map(node => ({
-                title: node.querySelector("title")?.textContent || "Bez tytułu",
-                link: node.querySelector("link")?.textContent || node.querySelector("link")?.getAttribute("href"),
-                pubDate: node.querySelector("pubDate, published, updated")?.textContent || ""
-            }));
-        } catch { return null; }
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return "";
-        const date = new Date(dateString);
-        return isNaN(date) ? "" : date.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
-    }
-
-    async function fetchFeed(feed) {
-        const container = document.getElementById("feeds");
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-            <div class="card-header">
-                <h2>${feed.name}</h2>
-                <span class="status-dot"></span>
-            </div>
-            <div class="msg-container">Wczytywanie...</div>
-        `;
-        container.appendChild(card);
-
-        const msgBox = card.querySelector(".msg-container");
-        const dot = card.querySelector(".status-dot");
-
-        for (const proxy of proxies) {
-            try {
-                const response = await fetch(proxy.url(feed.url));
-                if (!response.ok) continue;
-
-                let items = [];
-                if (proxy.isJson) {
-                    const data = await response.json();
-                    if (data.status !== 'ok') continue;
-                    items = data.items.map(i => ({ title: i.title, link: i.link, pubDate: i.pubDate }));
-                } else {
-                    const rawText = await response.text();
-                    const xml = proxy.extract ? proxy.extract(rawText) : rawText;
-                    items = parseXML(xml);
-                }
-
-                if (items && items.length > 0) {
-                    dot.classList.add("success");
-                    const list = document.createElement("ul");
-                    list.className = "feed-list";
-                    items.slice(0, 10).forEach(item => {
-                        const li = document.createElement("a");
-                        li.className = "feed-item";
-                        li.href = item.link;
-                        li.target = "_blank";
-                        li.innerHTML = `
-                            <span class="item-title">${item.title}</span>
-                            <span class="item-date">${formatDate(item.pubDate)}</span>
-                        `;
-                        list.appendChild(li);
-                    });
-                    msgBox.replaceWith(list);
-                    return;
-                }
-            } catch (e) {
-                console.error(`Failed ${feed.name}`);
-            }
-        }
-
-        dot.classList.add("error");
-        msgBox.textContent = "Błąd połączenia";
-    }
-
-    feeds.forEach(fetchFeed);
-</script>
-
-</body>
-</html>
+const
