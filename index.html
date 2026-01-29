@@ -38,11 +38,7 @@ header {
   align-items: center;
 }
 
-h1 {
-  margin: 0;
-  font-size: 1.2rem;
-  color: var(--accent);
-}
+h1 { margin: 0; font-size: 1.2rem; color: var(--accent); }
 
 .toolbar button {
   background: none;
@@ -125,9 +121,7 @@ h1 {
   color: var(--text);
 }
 
-.feed-item:hover {
-  background: rgba(56,189,248,.1);
-}
+.feed-item:hover { background: rgba(56,189,248,.1); }
 
 .item-title { font-size: .9rem; }
 .item-date { font-size: .75rem; color: var(--dim); }
@@ -151,13 +145,7 @@ h1 {
   max-width: 260px;
   display: none;
 }
-
-.hidden-panel h3 {
-  margin: 0 0 8px;
-  font-size: .9rem;
-  color: var(--accent);
-}
-
+.hidden-panel h3 { margin: 0 0 8px; font-size: .9rem; color: var(--accent); }
 .hidden-panel button {
   width: 100%;
   margin-bottom: 6px;
@@ -189,6 +177,7 @@ h1 {
 </div>
 
 <script>
+/* ---------- CONFIG ---------- */
 const feedsData = [
   { id:'benchmark', name:'Benchmark', url:'https://www.benchmark.pl/rss/aktualnosci.xml' },
   { id:'spidersweb', name:\"Spider's Web\", url:'https://spidersweb.pl/feed' },
@@ -198,4 +187,20 @@ const feedsData = [
   { id:'purepc', name:'PurePC', url:'https://www.purepc.pl/rss.xml' }
 ];
 
-const
+const proxies = [
+  { json:true, url:t=>`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(t)}` },
+  { json:false, url:t=>`https://api.allorigins.win/get?url=${encodeURIComponent(t)}`,
+    extract:t=>{ try{return JSON.parse(t).contents}catch{return null} } }
+];
+
+/* ---------- STATE ---------- */
+let state = JSON.parse(localStorage.getItem('tilesState')) || {
+  order: feedsData.map(f=>f.id),
+  hidden: []
+};
+
+const container = document.getElementById('feeds');
+const hiddenPanel = document.getElementById('hiddenPanel');
+const hiddenList = document.getElementById('hiddenList');
+
+function save(){ localStor
